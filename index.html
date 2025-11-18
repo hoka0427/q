@@ -1,0 +1,298 @@
+<!doctype html>
+<html lang="es" data-theme="dark"> <!-- Start with dark theme -->
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Gemini Advanced Analysis Suite</title>
+  <style>
+    :root {
+      /* Dark Theme (Default) */
+      --bg-start: #071021;
+      --bg-end: #091022;
+      --card-bg: #0b1220;
+      --text-primary: #e6eef8;
+      --text-muted: #98a0b3;
+      --accent: #3b82f6;
+      --accent-hover: #2563eb;
+      --ok: #10b981;
+      --danger: #ef4444;
+      --danger-hover: #dc2626;
+      --danger-text: #fecaca;
+      --danger-bg: rgba(239, 68, 68, 0.2);
+      --border-color: rgba(255, 255, 255, 0.04);
+      --border-color-light: rgba(255, 255, 255, 0.1);
+      --glass-bg: rgba(255, 255, 255, 0.03);
+      --button-hover-bg: rgba(255, 255, 255, 0.05);
+      --scroll-track: #1f2937;
+      --scroll-thumb: #4b5563;
+      --scroll-thumb-hover: #6b7280;
+      --msg-user-start: #0b2136;
+      --msg-user-end: #083047;
+      --msg-ai-start: #0b1330;
+      --msg-ai-end: #101525;
+    }
+
+    html[data-theme="light"] {
+      --bg-start: #f3f4f6;
+      --bg-end: #e5e7eb;
+      --card-bg: #ffffff;
+      --text-primary: #1f2937;
+      --text-muted: #6b7280;
+      --accent: #3b82f6;
+      --accent-hover: #2563eb;
+      --ok: #059669;
+      --danger: #ef4444;
+      --danger-hover: #dc2626;
+      --danger-text: #991b1b;
+      --danger-bg: rgba(239, 68, 68, 0.1);
+      --border-color: rgba(0, 0, 0, 0.1);
+      --border-color-light: rgba(0, 0, 0, 0.2);
+      --glass-bg: rgba(0, 0, 0, 0.02);
+      --button-hover-bg: rgba(0, 0, 0, 0.05);
+      --scroll-track: #e5e7eb;
+      --scroll-thumb: #9ca3af;
+      --scroll-thumb-hover: #6b7280;
+      --msg-user-start: #e0f2fe;
+      --msg-user-end: #bae6fd;
+      --msg-ai-start: #f1f5f9;
+      --msg-ai-end: #e2e8f0;
+    }
+
+    *{box-sizing:border-box}
+    
+    body{
+      margin:0;
+      background:linear-gradient(180deg, var(--bg-start) 0%, var(--bg-end) 100%);
+      color: var(--text-primary);
+      min-height:100vh;
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
+      transition: background-color 0.3s, color 0.3s;
+    }
+
+    #root { height: 100vh; width: 100vw; }
+
+    .card{
+      background: var(--card-bg);
+      border-radius:10px;
+      padding:14px;
+      box-shadow:0 4px 18px rgba(2,6,23,0.6);
+      border:1px solid var(--border-color);
+      transition: background-color 0.3s, border-color 0.3s;
+    }
+
+    button{
+      background:transparent;
+      border:1px solid var(--border-color);
+      color:inherit;
+      padding:8px 10px;
+      border-radius:8px;
+      cursor:pointer; 
+      font-family: inherit; 
+      transition: background-color 0.2s, border-color 0.2s, color 0.2s;
+    }
+    button:hover:not(:disabled) { 
+      border-color: var(--border-color-light); 
+      background-color: var(--button-hover-bg); 
+    }
+    button:disabled { cursor: not-allowed; opacity: 0.5; }
+
+    .primary{background:linear-gradient(90deg,var(--accent),var(--accent-hover));border:none;color:white}
+    .danger{background-color: var(--danger); border-color: var(--danger); color: white;}
+    .danger:hover:not(:disabled){background-color: var(--danger-hover); border-color: var(--danger-hover);}
+    .muted{background:transparent;border:1px dashed var(--border-color)}
+
+    textarea, input[type="text"], select {
+      width:100%;
+      background:var(--glass-bg);
+      border:1px solid var(--border-color);
+      padding:8px;
+      border-radius:8px;
+      color:inherit; 
+      font-family: inherit;
+    }
+
+    .log, .drive-preview {font-family:monospace;font-size:13px;}
+    
+    .messages{flex:1;overflow:auto;padding:8px;background:linear-gradient(180deg, var(--glass-bg), transparent);border-radius:8px}
+    
+    .msg-container {
+      display: flex;
+      gap: 10px;
+      align-items: flex-start;
+      margin-bottom: 12px;
+    }
+    .msg-container.user {
+      flex-direction: row-reverse;
+    }
+    .avatar {
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      margin-top: 4px;
+    }
+    .avatar.user-avatar {
+      background-color: var(--accent);
+    }
+    .avatar.model-avatar {
+      background-color: var(--card-bg);
+      border: 1px solid var(--border-color);
+    }
+
+    .msg{
+      padding:8px 12px;
+      border-radius:8px;
+      max-width:85%; 
+      line-break: anywhere;
+      margin-bottom: 0;
+    }
+    .msg.user{background:linear-gradient(90deg,var(--msg-user-start), var(--msg-user-end)); margin-left: 0;}
+    .msg.model{background:linear-gradient(90deg,var(--msg-ai-start),var(--msg-ai-end));border:1px solid var(--border-color)}
+    .msg.error { background: var(--danger-bg); border: 1px solid var(--danger); color: var(--danger-text); }
+    
+    .sources-container, .quick-replies-container {
+      margin-top: 12px;
+      border-top: 1px solid var(--border-color);
+      padding-top: 10px;
+    }
+    .sources-container h4, .quick-replies-container h4 {
+      margin: 0 0 8px 0;
+      font-size: 12px;
+      color: var(--text-muted);
+      font-weight: 500;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    .sources-list, .quick-replies-list {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    
+    ::-webkit-scrollbar { width: 8px; }
+    ::-webkit-scrollbar-track { background: var(--scroll-track); }
+    ::-webkit-scrollbar-thumb { background: var(--scroll-thumb); border-radius: 4px; }
+    ::-webkit-scrollbar-thumb:hover { background: var(--scroll-thumb-hover); }
+    
+    /* Dialog Styles */
+    .dialog-overlay {
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background-color: rgba(0, 0, 0, 0.7);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      z-index: 1000;
+      backdrop-filter: blur(4px);
+    }
+    .dialog-content {
+      background-color: var(--card-bg);
+      padding: 24px;
+      border-radius: 10px;
+      border: 1px solid var(--border-color);
+      box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+      width: 90%;
+      max-width: 400px;
+      text-align: center;
+    }
+    
+    /* Setup Guide Styles */
+    .setup-guide-content {
+      background-color: var(--card-bg);
+      padding: 24px 32px;
+      border-radius: 12px;
+      border: 1px solid var(--border-color);
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.4);
+      width: 90%;
+      max-width: 480px;
+      text-align: left;
+      color: var(--text-muted);
+      line-height: 1.6;
+    }
+    .setup-guide-content h2 {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      color: var(--text-primary);
+      font-size: 20px;
+      margin-top: 0;
+    }
+    .setup-guide-content code {
+      background-color: var(--glass-bg);
+      padding: 2px 6px;
+      border-radius: 4px;
+      font-family: monospace;
+      border: 1px solid var(--border-color);
+      color: var(--accent);
+    }
+    .setup-guide-content ol {
+      padding-left: 20px;
+    }
+    .setup-guide-content li {
+      margin-bottom: 14px;
+    }
+    .setup-guide-content a {
+      color: var(--accent);
+      text-decoration: none;
+    }
+    .setup-guide-content a:hover {
+      text-decoration: underline;
+    }
+
+
+    /* Microphone button animation */
+    @keyframes pulse {
+      0%, 100% {
+        transform: scale(1);
+        opacity: 1;
+      }
+      50% {
+        transform: scale(1.1);
+        opacity: 0.7;
+      }
+    }
+
+    .recording {
+      animation: pulse 1.5s infinite;
+      background-color: var(--danger-bg);
+      color: var(--danger);
+      border-color: var(--danger);
+    }
+  </style>
+  <script type="importmap">
+  {
+    "imports": {
+      "react/": "https://aistudiocdn.com/react@^19.2.0/",
+      "react": "https://aistudiocdn.com/react@^19.2.0",
+      "react-dom/": "https://aistudiocdn.com/react-dom@^19.2.0/",
+      "@google/genai": "https://aistudiocdn.com/@google/genai@^1.29.0"
+    }
+  }
+  </script>
+<link rel="stylesheet" href="/index.css">
+</head>
+<body>
+  <div id="root"></div>
+
+  <!-- 
+    ===============================================================
+    PASO DE CONFIGURACIÓN IMPORTANTE:
+    ===============================================================
+    Puedes introducir tus credenciales directamente en la aplicación
+    la primera vez que la abras, o reemplazarlas aquí manualmente.
+    ===============================================================
+  -->
+  <script>
+    window.GOOGLE_CONFIG = {
+      API_KEY: "TU_GOOGLE_API_KEY", // Reemplaza esto con tu Clave de API
+      CLIENT_ID: "TU_GOOGLE_CLIENT_ID.apps.googleusercontent.com", // Reemplaza esto con tu ID de Cliente OAuth
+      SCOPE: "https://www.googleapis.com/auth/drive.readonly",
+    };
+  </script>
+  <script src="https://apis.google.com/js/api.js"></script>
+  <script type="module" src="/index.tsx"></script>
+</body>
+</html>
